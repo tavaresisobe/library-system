@@ -1,0 +1,6 @@
+from abc import ABC, abstractmethod
+
+class Mediator(ABC):
+    @abstractmethod
+    def execute_operation(self, operation, user_id, book_id):
+        pass
