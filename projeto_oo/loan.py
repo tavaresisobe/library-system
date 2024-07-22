@@ -8,8 +8,10 @@ class Loan:
         self.book = book
         self.user = user
     
-    def process_rental(self, user: User, book: Book):
+    def make_rental(self, user: User, book: Book):
         print(f"Processing rental for {user.name} for book '{book.title}'.")
+        self.user.rented_books.append(book)
 
     def reversal_rental(self, user: User, book: Book):
         print(f"Processing reversal rental for {user.name} for book '{book.title}'.")
+        self.user.rented_books.remove(book)

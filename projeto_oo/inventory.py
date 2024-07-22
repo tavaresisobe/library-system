@@ -1,21 +1,26 @@
 from models.book import Book
 
 class Inventory:
-    def __init__(self, mediator):
+    def __init__(self):
         self.books = {}
-        self.mediator = mediator
 
     def add_book(self, book: Book) -> None:
-        self.books[book.book_id] = book
+        self.books[book.id] = book
     
-    def remove_book(self, book_id: int) -> None:
-        if book_id in self.books:
-            del self.books[book_id]
+    def remove_book(self, id: int) -> None:
+        if id in self.books:
+            del self.books[id]
 
-    def check_availability(self, book_id) -> bool:
-        book = self.books.get(book_id)
+    def get_books(self) -> dict:
+        return self.books
+
+    def get_book_by_id(self, id: int) -> Book:
+        return self.books.get(id)
+
+    def check_availability(self, id: int) -> bool:
+        book = self.books.get(id)
         return book is not None and book.available
 
-    def update_availability(self, book_id, available) -> None:
-        if book_id in self.books:
-            self.books[book_id].available = available
+    def update_availability(self, id: int, available: bool) -> None:
+        if id in self.books:
+            self.books[id].available = available
