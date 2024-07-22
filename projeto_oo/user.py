@@ -17,3 +17,17 @@ class User:
 
     def already_rented_book(self, book: Book)-> bool:
         return isinstance (book, self.rented_books)
+
+    def add_rented_book(self, book: Book) -> bool:
+        try:
+            self.rented_books.append(book)
+            return True
+        except:
+            return False
+
+    def remove_rented_book(self, book: Book) -> bool:
+        try:
+            self.rented_books.remove(book)
+            return True
+        except:
+            return False

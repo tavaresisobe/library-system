@@ -6,7 +6,7 @@ class Inventory:
 
     def add_book(self, book: Book) -> None:
         self.books[book.id] = book
-    
+
     def remove_book(self, id: int) -> None:
         if id in self.books:
             del self.books[id]

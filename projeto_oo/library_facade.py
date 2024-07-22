@@ -20,7 +20,7 @@ class LibraryFacade:
 
     def remove_book(self, book_id: int) -> None:
         self.library_mediator.remove_book(id=book_id)
-    
+
     def check_availability(self, book_id: int) -> bool:
         if self.library_mediator.check_avaible(id=book_id):
             print (f'the book with id {book_id} is avaible')

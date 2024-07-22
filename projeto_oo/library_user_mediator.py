@@ -2,6 +2,7 @@ from inventory import Inventory
 from models.book import Book
 from user import User
 from loan import Loan
+from datetime import datetime, timedelta
 
 class LibraryUserMediator():
     """Mediator para as operacoes do usuario com a biblioteca"""
@@ -10,7 +11,11 @@ class LibraryUserMediator():
         self.books = books
         self.users = users
         self.inventory = Inventory(self)
-        self.rental = Loan(self)
+        self.rental = Loan(start=datetime.now(),
+                           end=datetime.now() + timedelta(days=10),
+                           user=self.users,
+                           book=self.books
+                           )
 
     def process_to_rental_book(self, user: User, book_id: int) -> None:
         """Processo para alugar livro"""
