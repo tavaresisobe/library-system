@@ -1,41 +1,66 @@
-from inventory import Inventory
 from models.book import Book
+from inventory import Inventory
 from user import User
 from loan import Loan
 from datetime import datetime, timedelta
+import logging
+from typing import Tuple
 
-class LibraryUserMediator():
-    """Mediator para as operacoes do usuario com a biblioteca"""
+LOGGER = logging.getLogger('sLogger')
 
-    def __init__(self, books, users):
-        self.books = books
-        self.users = users
+class LibraryUserMediator:
+    def __init__(self):
         self.inventory = Inventory(self)
-        self.rental = Loan(start=datetime.now(),
-                           end=datetime.now() + timedelta(days=10),
-                           user=self.users,
-                           book=self.books
-                           )
 
-    def process_to_rental_book(self, user: User, book_id: int) -> None:
-        """Processo para alugar livro"""
+    def process_to_rental_book(self, users_list: list[User], actual_inventary: list [Book],
+                                rent: list[Loan], ra: str, book_id: int) -> None:
 
-        if self.inventory.check_availability(book_id):
-            book: Book = self.inventory.books[book_id]
-            if user.can_rent_more_books():
-                self.rental.make_rental(user, book)
-                self.inventory.update_availability(id=book_id, available=False)
+        user, user_index = self.__get_user_data(users_list=users_list, ra=ra)
+        user: User
+
+        try:
+            if self.inventory.check_available(inventary=actual_inventary, id=book_id):
+                book = self.inventory.get_book_by_id(inventary=actual_inventary, id=book_id)
+                if user.can_rent_more_books(user=user):
+                    new_loan = Loan(start=datetime.now(), end=datetime.now()+timedelta(days=10),
+                                    user=user, book=book)
+                    user = new_loan.make_loan(user, book)
+                    actual_inventary = self.inventory.update_availability(inventary=actual_inventary, 
+                                                       id=book_id, available=False)
+                    users_list [user_index] = user
+                    return actual_inventary, users_list, rent.append(new_loan)
+                else:
+                    LOGGER.info(f"{user.name} has reached the limit of rented books for
+                          {user.user_type.name.lower()}")
             else:
-                print(f"{user.name} has reached the limit of rented books for {user.user_type.name.lower()}s.")
-        else:
-            print(f"Book with ID {book_id} is not available for rent.")
+                LOGGER.info(f"The book with ID {book_id} is not available for rent")
+        except Exception as error:
+            LOGGER.critical(f"An error occurred when renting the book with id {book_id} for ra {ra} - {error}")
 
-    def process_to_return_book(self, user: User, book_id: int) -> None:
-        """Processo para devolver livro"""
+    def process_to_return_book(self, users_list: list[User], actual_inventary: list [Book],
+                                rent: list[Loan], ra: str, book_id: int) -> None:
 
-        book : Book = self.inventory.books[book_id]
-        if user.already_rented_book:
-            self.rental.reversal_rental(user, book)
-            self.inventory.update_availability(book_id, True)
-        else:
-            print(f"{user.name} has not rented the currently book.")
+        user, user_index = self.__get_user_data(users_list=users_list, ra=ra)
+        user: User
+
+        try:
+            book = self.inventory.get_book_by_id(inventary=actual_inventary, id=book_id)
+            if user.already_rented_book(user=user, book=book):
+                loan, loan_index = Loan().search_for_loan(rent, book)
+                user = loan.reversal_loan(user, book)
+                actual_inventary = self.inventory.update_availability(inventary=actual_inventary, 
+                                                       id=book_id, available=True)
+                users_list [user_index] = user
+                rent[loan_index].active = False
+                return actual_inventary, users_list, rent
+            else:
+                LOGGER.info(f"{user.name} did not rent the book with ID {book_id}")
+        except Exception as error:
+            LOGGER.critical(f"An error occurred while returning the book with id {book_id} to ra {ra} - {error}")
+
+    def __get_user_data(users_list: list[User], ra: str)-> Tuple[User, int]:
+        try:
+            LOGGER.info(f"Getting user with ra {ra}")
+            return User().get_user_by_ra(users_data=users_list, ra=ra)
+        except Exception as error:
+            LOGGER.critical (f"User with ra {ra} not registered - {error}")
